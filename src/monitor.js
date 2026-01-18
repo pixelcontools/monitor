@@ -321,13 +321,17 @@ function renderRegions() {
 }
 
 function exportRegions() {
-  const blob = new Blob([JSON.stringify(regions, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `geopixels-regions-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const json = JSON.stringify(regions, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.textContent = originalText;
+    }, 2000);
+  }).catch(err => {
+    log('Failed to copy to clipboard', 'log-error');
+  });
 }
 
 function importRegions() {
