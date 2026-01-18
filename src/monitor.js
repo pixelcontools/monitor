@@ -33,6 +33,9 @@ let filters = {
   graph: { region: '', guild: '', username: '', startTime: null, endTime: null }
 };
 
+// Graph settings
+let graphLinesLimit = 100;
+
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
   loadFromStorage();
@@ -81,6 +84,11 @@ function loadFromStorage() {
   const savedProfiles = localStorage.getItem('gp_monitor_profiles');
   if (savedProfiles) {
     userProfileCache = new Map(JSON.parse(savedProfiles));
+  }
+  
+  const savedGraphLimit = localStorage.getItem('gp_monitor_graph_limit');
+  if (savedGraphLimit) {
+    graphLinesLimit = parseInt(savedGraphLimit);
   }
 }
 
@@ -1090,6 +1098,20 @@ function switchTab(tabName) {
   document.getElementById(tabName + 'Tab').classList.add('active');
   
   if (tabName === 'graph') {
+    // Initialize the input value
+    const graphLinesInput = document.getElementById('graphLinesLimit');
+    if (graphLinesInput && !graphLinesInput.value) {
+      graphLinesInput.value = graphLinesLimit;
+    }
+    updateGraph();
+  }
+}
+
+function updateGraphLinesLimit(value) {
+  const limit = parseInt(value);
+  if (limit >= 1 && limit <= 200) {
+    graphLinesLimit = limit;
+    localStorage.setItem('gp_monitor_graph_limit', limit.toString());
     updateGraph();
   }
 }
@@ -1177,7 +1199,7 @@ function updateGraph() {
   
   // Create datasets (one line per group)
   const colors = ['#4ec9b0', '#0e639c', '#d16969', '#ffd700', '#c0c0c0', '#cd7f32', '#569cd6', '#dcdcaa'];
-  const datasets = Array.from(allGroups).slice(0, 8).map((group, i) => {
+  const datasets = Array.from(allGroups).slice(0, graphLinesLimit).map((group, i) => {
     return {
       label: group,
       data: times.map(time => timeGroups[time][group] || 0),
