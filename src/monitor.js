@@ -176,7 +176,24 @@ function clearLog() {
   renderLog();
 }
 
-function exportLog() {
+function clearAllData() {
+  if (!confirm('Clear all monitoring data (leaderboard, user activity, graphs)? This will NOT affect your monitored regions.')) {
+    return;
+  }
+  
+  activityLog = [];
+  leaderboard.clear();
+  userActivity = [];
+  
+  saveToStorage();
+  renderLog();
+  renderLeaderboard();
+  renderUserActivity();
+  
+  log('All monitoring data cleared', 'log-info');
+}
+
+function exportLog(event) {
   const json = JSON.stringify(activityLog, null, 2);
   navigator.clipboard.writeText(json).then(() => {
     const btn = event.target;
@@ -320,7 +337,7 @@ function renderRegions() {
   `).join('');
 }
 
-function exportRegions() {
+function exportRegions(event) {
   const json = JSON.stringify(regions, null, 2);
   navigator.clipboard.writeText(json).then(() => {
     const btn = event.target;

@@ -384,7 +384,7 @@
       <div class="sidebar-section">
         <h2>Region Manager</h2>
         <div style="display: flex; gap: 4px; margin-bottom: 12px;">
-          <button class="btn btn-secondary btn-small" onclick="exportRegions()" style="flex: 1;">Export JSON</button>
+          <button class="btn btn-secondary btn-small" onclick="exportRegions(event)" style="flex: 1;">Export JSON</button>
           <button class="btn btn-secondary btn-small" onclick="importRegions()" style="flex: 1;">Import JSON</button>
         </div>
         
@@ -453,13 +453,16 @@
         <div id="activityTab" class="tab-pane active">
           <div class="toolbar">
             <button class="btn btn-secondary btn-small" onclick="clearLog()">Clear Log</button>
-            <button class="btn btn-secondary btn-small" onclick="exportLog()">Export Log</button>
+            <button class="btn btn-secondary btn-small" onclick="exportLog(event)">Export Log</button>
           </div>
           <div id="activityLog"></div>
         </div>
 
         <div id="leaderboardTab" class="tab-pane">
-          <h2 style="margin-bottom: 16px;">Top Contributors</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;">Top Contributors</h2>
+            <button class="btn btn-danger btn-small" onclick="clearAllData()">Clear All Data</button>
+          </div>
           <div style="margin-bottom: 16px;">
             <label for="leaderboardRegionFilter" style="margin-right: 8px;">Filter by Region:</label>
             <select id="leaderboardRegionFilter" onchange="renderLeaderboard()" style="padding: 4px 8px;">
