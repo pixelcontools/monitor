@@ -54,7 +54,7 @@
 
     .warning-banner {
       background-color: #5a3e1a;
-      border-bottom: 1px solid #8B6914;
+      border-bottom: 1px solid: #8B6914;
       color: #ffd700;
       padding: 8px 16px;
       font-size: 13px;
@@ -384,7 +384,7 @@
       <div class="sidebar-section">
         <h2>Region Manager</h2>
         <div style="display: flex; gap: 4px; margin-bottom: 12px;">
-          <button class="btn btn-secondary btn-small" onclick="exportRegions()" style="flex: 1;">Export JSON</button>
+          <button class="btn btn-secondary btn-small" onclick="exportRegions(event)" style="flex: 1;">Export JSON</button>
           <button class="btn btn-secondary btn-small" onclick="importRegions()" style="flex: 1;">Import JSON</button>
         </div>
         
@@ -453,13 +453,16 @@
         <div id="activityTab" class="tab-pane active">
           <div class="toolbar">
             <button class="btn btn-secondary btn-small" onclick="clearLog()">Clear Log</button>
-            <button class="btn btn-secondary btn-small" onclick="exportLog()">Export Log</button>
+            <button class="btn btn-secondary btn-small" onclick="exportLog(event)">Export Log</button>
           </div>
           <div id="activityLog"></div>
         </div>
 
         <div id="leaderboardTab" class="tab-pane">
-          <h2 style="margin-bottom: 16px;">Top Contributors</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;">Top Contributors</h2>
+            <button class="btn btn-danger btn-small" onclick="clearAllData()">Clear All Data</button>
+          </div>
           <div style="margin-bottom: 16px;">
             <label for="leaderboardRegionFilter" style="margin-right: 8px;">Filter by Region:</label>
             <select id="leaderboardRegionFilter" onchange="renderLeaderboard()" style="padding: 4px 8px;">
@@ -695,7 +698,24 @@ function clearLog() {
   renderLog();
 }
 
-function exportLog() {
+function clearAllData() {
+  if (!confirm('Clear all monitoring data (leaderboard, user activity, graphs)? This will NOT affect your monitored regions.')) {
+    return;
+  }
+  
+  activityLog = [];
+  leaderboard.clear();
+  userActivity = [];
+  
+  saveToStorage();
+  renderLog();
+  renderLeaderboard();
+  renderUserActivity();
+  
+  log('All monitoring data cleared', 'log-info');
+}
+
+function exportLog(event) {
   const json = JSON.stringify(activityLog, null, 2);
   navigator.clipboard.writeText(json).then(() => {
     const btn = event.target;
@@ -705,7 +725,7 @@ function exportLog() {
       btn.textContent = originalText;
     }, 2000);
   }).catch(err => {
-    log('Failed to copy to clipboard', 'log-error');
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
@@ -839,7 +859,7 @@ function renderRegions() {
   `).join('');
 }
 
-function exportRegions() {
+function exportRegions(event) {
   const json = JSON.stringify(regions, null, 2);
   navigator.clipboard.writeText(json).then(() => {
     const btn = event.target;
@@ -849,7 +869,7 @@ function exportRegions() {
       btn.textContent = originalText;
     }, 2000);
   }).catch(err => {
-    log('Failed to copy to clipboard', 'log-error');
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
@@ -1270,7 +1290,7 @@ async function renderLeaderboard() {
       <tr>
         <td>${index + 1}</td>
         <td>${userClickable}</td>
-        <td><span style="font-size: 8px; line-height: 1; display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${guildTag}</span></td>
+        <td><span style="font-size: 10px; line-height: 1; display: inline-block; transform: scale(0.4); transform-origin: left center;">${guildTag}</span></td>
         <td>${entry.pixels}</td>
         <td>${new Date(entry.lastSeen).toLocaleString()}</td>
       </tr>
@@ -1334,7 +1354,7 @@ async function renderUserActivity() {
       <tr>
         <td>${entry.userId}</td>
         <td>${userClickable}</td>
-        <td><span style="font-size: 8px; line-height: 1; display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${guildTag}</span></td>
+        <td><span style="font-size: 10px; line-height: 1; display: inline-block; transform: scale(0.4); transform-origin: left center;">${guildTag}</span></td>
         <td>${entry.pixels}</td>
         <td>${escapeHtml(entry.region)}</td>
         <td><a href="https://geopixels.net/?coords=${entry.chunk.replace(',', ',')}" target="_blank" class="coords-link">${entry.chunk}</a></td>
@@ -1511,7 +1531,7 @@ function copyDiscordId(discordUser, event) {
   navigator.clipboard.writeText(discordUser).then(() => {
     log(`Copied Discord ID: ${discordUser}`);
   }).catch(err => {
-    log('Failed to copy to clipboard', 'log-error');
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 

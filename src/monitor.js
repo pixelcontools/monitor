@@ -203,7 +203,7 @@ function exportLog(event) {
       btn.textContent = originalText;
     }, 2000);
   }).catch(err => {
-    log('Failed to copy to clipboard', 'log-error');
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
@@ -347,7 +347,7 @@ function exportRegions(event) {
       btn.textContent = originalText;
     }, 2000);
   }).catch(err => {
-    log('Failed to copy to clipboard', 'log-error');
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
@@ -1009,7 +1009,7 @@ function copyDiscordId(discordUser, event) {
   navigator.clipboard.writeText(discordUser).then(() => {
     log(`Copied Discord ID: ${discordUser}`);
   }).catch(err => {
-    log('Failed to copy to clipboard', 'log-error');
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
