@@ -13,9 +13,6 @@ const js = fs.readFileSync(path.join(__dirname, 'src', 'monitor.js'), 'utf8');
 // Inline the JavaScript
 const bundled = html.replace('<!-- SCRIPT_PLACEHOLDER -->', `<script>\n${js}\n</script>`);
 
-// Write to root
-fs.writeFileSync(path.join(__dirname, 'index.html'), bundled);
-
 // Write to docs folder (for GitHub Pages)
 const docsDir = path.join(__dirname, 'docs');
 if (!fs.existsSync(docsDir)) {
@@ -23,5 +20,4 @@ if (!fs.existsSync(docsDir)) {
 }
 fs.writeFileSync(path.join(docsDir, 'index.html'), bundled);
 
-console.log('✓ Built index.html successfully!');
 console.log('✓ Built docs/index.html successfully!');

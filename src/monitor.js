@@ -26,6 +26,13 @@ let changedPixels = new Map();
 let userProfileCache = new Map();
 let pendingUserRequests = new Map();
 
+// Filter state
+let filters = {
+  leaderboard: { region: '', guild: '', username: '' },
+  users: { region: '', guild: '', username: '' },
+  graph: { region: '', guild: '', username: '' }
+};
+
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
   loadFromStorage();
@@ -205,6 +212,65 @@ function exportLog(event) {
   }).catch(err => {
     console.error('Failed to copy to clipboard:', err);
   });
+}
+
+function exportData(event) {
+  const data = {
+    leaderboard: [...leaderboard],
+    user_activity: userActivity,
+    activity_log: activityLog
+  };
+  const json = JSON.stringify(data, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    log('Data exported to clipboard', 'log-info');
+    setTimeout(() => {
+      btn.textContent = originalText;
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy to clipboard:', err);
+  });
+}
+
+function importData() {
+  const json = prompt('Paste your exported data JSON:');
+  if (!json) return;
+  
+  try {
+    const data = JSON.parse(json);
+    
+    if (!data || typeof data !== 'object') {
+      alert('Invalid data format');
+      return;
+    }
+    
+    // Import leaderboard
+    if (Array.isArray(data.leaderboard)) {
+      leaderboard = new Map(data.leaderboard);
+    }
+    
+    // Import user activity
+    if (Array.isArray(data.user_activity)) {
+      userActivity = data.user_activity;
+    }
+    
+    // Import activity log
+    if (Array.isArray(data.activity_log)) {
+      activityLog = data.activity_log;
+    }
+    
+    saveToStorage();
+    renderLog();
+    renderLeaderboard();
+    renderUserActivity();
+    updateGraph();
+    
+    log('Data imported successfully', 'log-info');
+  } catch (e) {
+    alert('Failed to parse JSON: ' + e.message);
+  }
 }
 
 // Region management
@@ -728,33 +794,94 @@ function updateLeaderboard(userId, pixelCount, region) {
   resolveUsername(userId).then(() => renderLeaderboard());
 }
 
+// Filter helper functions
+function extractGuildText(guildTag) {
+  // Extract text content from complex guild tag HTML
+  if (!guildTag) return '';
+  const temp = document.createElement('div');
+  temp.innerHTML = guildTag;
+  return temp.textContent || temp.innerText || '';
+}
+
+function getUniqueGuilds() {
+  const guilds = new Set();
+  userProfileCache.forEach(cached => {
+    if (cached?.profile?.guildTag) {
+      const guildText = extractGuildText(cached.profile.guildTag);
+      if (guildText) guilds.add(guildText);
+    }
+  });
+  return Array.from(guilds).sort();
+}
+
+function populateGuildFilter(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  
+  const currentValue = select.value;
+  const guilds = getUniqueGuilds();
+  
+  // Keep 'All Guilds' option and rebuild list
+  const allOption = select.querySelector('option[value=""]');
+  select.innerHTML = '';
+  if (allOption) select.appendChild(allOption);
+  
+  guilds.forEach(guild => {
+    const option = document.createElement('option');
+    option.value = guild;
+    option.textContent = guild;
+    if (guild === currentValue) option.selected = true;
+    select.appendChild(option);
+  });
+}
+
+function matchesFilters(entry, filterSet) {
+  const cached = userProfileCache.get(entry.userId);
+  const username = cached ? cached.username.toLowerCase() : `user${entry.userId}`;
+  const guildText = cached?.profile?.guildTag ? extractGuildText(cached.profile.guildTag).toLowerCase() : '';
+  const region = entry.region || '';
+  
+  if (filterSet.region && region !== filterSet.region) return false;
+  if (filterSet.guild && guildText !== filterSet.guild.toLowerCase()) return false;
+  if (filterSet.username && !username.includes(filterSet.username.toLowerCase())) return false;
+  
+  return true;
+}
+
 async function renderLeaderboard() {
   const tbody = document.getElementById('leaderboardBody');
-  const filterSelect = document.getElementById('leaderboardRegionFilter');
-  const selectedRegion = filterSelect ? filterSelect.value : '';
+  const regionFilter = document.getElementById('leaderboardRegionFilter');
+  const guildFilter = document.getElementById('leaderboardGuildFilter');
+  const usernameFilter = document.getElementById('leaderboardUsernameFilter');
   
-  // Get unique regions from regions array
-  if (filterSelect && filterSelect.children.length === 1) {
+  // Update filter state
+  filters.leaderboard.region = regionFilter ? regionFilter.value : '';
+  filters.leaderboard.guild = guildFilter ? guildFilter.value : '';
+  filters.leaderboard.username = usernameFilter ? usernameFilter.value : '';
+  
+  // Populate region dropdown
+  if (regionFilter && regionFilter.children.length === 1) {
     regions.forEach(r => {
-      if (!filterSelect.querySelector(`option[value="${r.name}"]`)) {
+      if (!regionFilter.querySelector(`option[value="${r.name}"]`)) {
         const option = document.createElement('option');
         option.value = r.name;
         option.textContent = r.name;
-        filterSelect.appendChild(option);
+        regionFilter.appendChild(option);
       }
     });
   }
   
-  // Filter leaderboard by region if selected
-  let filtered = [...leaderboard.values()];
-  if (selectedRegion) {
-    filtered = filtered.filter(entry => entry.region === selectedRegion);
-  }
-  const sorted = filtered.sort((a, b) => b.pixels - a.pixels);
+  // Populate guild dropdown
+  populateGuildFilter('leaderboardGuildFilter');
   
   // Fetch all usernames first
-  const userIds = sorted.map(e => e.userId);
+  const allEntries = [...leaderboard.values()];
+  const userIds = allEntries.map(e => e.userId);
   await Promise.all(userIds.map(id => resolveUsername(id)));
+  
+  // Apply filters
+  const filtered = allEntries.filter(entry => matchesFilters(entry, filters.leaderboard));
+  const sorted = filtered.sort((a, b) => b.pixels - a.pixels);
   
   tbody.innerHTML = sorted.map((entry, index) => {
     const cached = userProfileCache.get(entry.userId);
@@ -803,6 +930,29 @@ function addUserActivity(userId, pixelCount, region, chunk) {
 
 async function renderUserActivity() {
   const tbody = document.getElementById('usersBody');
+  const regionFilter = document.getElementById('usersRegionFilter');
+  const guildFilter = document.getElementById('usersGuildFilter');
+  const usernameFilter = document.getElementById('usersUsernameFilter');
+  
+  // Update filter state
+  filters.users.region = regionFilter ? regionFilter.value : '';
+  filters.users.guild = guildFilter ? guildFilter.value : '';
+  filters.users.username = usernameFilter ? usernameFilter.value : '';
+  
+  // Populate region dropdown
+  if (regionFilter && regionFilter.children.length === 1) {
+    regions.forEach(r => {
+      if (!regionFilter.querySelector(`option[value="${r.name}"]`)) {
+        const option = document.createElement('option');
+        option.value = r.name;
+        option.textContent = r.name;
+        regionFilter.appendChild(option);
+      }
+    });
+  }
+  
+  // Populate guild dropdown
+  populateGuildFilter('usersGuildFilter');
   
   // Group by user for display (consolidate multiple pixels)
   const grouped = {};
@@ -814,13 +964,16 @@ async function renderUserActivity() {
     grouped[key].pixels += entry.pixels;
   });
   
-  const consolidated = Object.values(grouped); // Show ALL activity
+  const consolidated = Object.values(grouped);
   
   // Fetch all usernames first
   const userIds = consolidated.map(e => e.userId);
   await Promise.all(userIds.map(id => resolveUsername(id)));
   
-  tbody.innerHTML = consolidated.map(entry => {
+  // Apply filters
+  const filtered = consolidated.filter(entry => matchesFilters(entry, filters.users));
+  
+  tbody.innerHTML = filtered.map(entry => {
     const cached = userProfileCache.get(entry.userId);
     const username = cached ? escapeHtml(cached.username) : `User${entry.userId}`;
     const discordUser = cached?.profile?.discordUser || '';
@@ -857,9 +1010,35 @@ function switchTab(tabName) {
 
 function updateGraph() {
   const groupBy = document.getElementById('graphGroupBy').value;
+  const regionFilter = document.getElementById('graphRegionFilter');
+  const guildFilter = document.getElementById('graphGuildFilter');
+  const usernameFilter = document.getElementById('graphUsernameFilter');
   const ctx = document.getElementById('activityChart').getContext('2d');
   
-  if (userActivity.length === 0) {
+  // Update filter state
+  filters.graph.region = regionFilter ? regionFilter.value : '';
+  filters.graph.guild = guildFilter ? guildFilter.value : '';
+  filters.graph.username = usernameFilter ? usernameFilter.value : '';
+  
+  // Populate region dropdown
+  if (regionFilter && regionFilter.children.length === 1) {
+    regions.forEach(r => {
+      if (!regionFilter.querySelector(`option[value="${r.name}"]`)) {
+        const option = document.createElement('option');
+        option.value = r.name;
+        option.textContent = r.name;
+        regionFilter.appendChild(option);
+      }
+    });
+  }
+  
+  // Populate guild dropdown
+  populateGuildFilter('graphGuildFilter');
+  
+  // Apply filters to userActivity
+  const filteredActivity = userActivity.filter(entry => matchesFilters(entry, filters.graph));
+  
+  if (filteredActivity.length === 0) {
     if (chart) {
       chart.destroy();
       chart = null;
@@ -869,7 +1048,7 @@ function updateGraph() {
   
   // Group data by time intervals (1 minute)
   const timeGroups = {};
-  userActivity.forEach(activity => {
+  filteredActivity.forEach(activity => {
     const minute = new Date(activity.timestamp);
     minute.setSeconds(0, 0);
     const timeKey = minute.toISOString();

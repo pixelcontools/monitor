@@ -453,7 +453,6 @@
         <div id="activityTab" class="tab-pane active">
           <div class="toolbar">
             <button class="btn btn-secondary btn-small" onclick="clearLog()">Clear Log</button>
-            <button class="btn btn-secondary btn-small" onclick="exportLog(event)">Export Log</button>
           </div>
           <div id="activityLog"></div>
         </div>
@@ -461,13 +460,29 @@
         <div id="leaderboardTab" class="tab-pane">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h2 style="margin: 0;">Top Contributors</h2>
-            <button class="btn btn-danger btn-small" onclick="clearAllData()">Clear All Data</button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-small" onclick="exportData(event)">Export Data</button>
+              <button class="btn btn-secondary btn-small" onclick="importData()">Import Data</button>
+              <button class="btn btn-danger btn-small" onclick="clearAllData()">Clear All Data</button>
+            </div>
           </div>
-          <div style="margin-bottom: 16px;">
-            <label for="leaderboardRegionFilter" style="margin-right: 8px;">Filter by Region:</label>
-            <select id="leaderboardRegionFilter" onchange="renderLeaderboard()" style="padding: 4px 8px;">
-              <option value="">Overall (All Regions)</option>
-            </select>
+          <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="leaderboardRegionFilter" style="color: #a0a0a0; font-size: 12px;">Region:</label>
+              <select id="leaderboardRegionFilter" onchange="renderLeaderboard()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
+                <option value="">All Regions</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="leaderboardGuildFilter" style="color: #a0a0a0; font-size: 12px;">Guild:</label>
+              <select id="leaderboardGuildFilter" onchange="renderLeaderboard()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px; max-width: 200px;">
+                <option value="">All Guilds</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="leaderboardUsernameFilter" style="color: #a0a0a0; font-size: 12px;">Username:</label>
+              <input type="text" id="leaderboardUsernameFilter" oninput="renderLeaderboard()" placeholder="Filter by username..." style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
+            </div>
           </div>
           <table id="leaderboardTable">
             <thead>
@@ -484,7 +499,32 @@
         </div>
 
         <div id="usersTab" class="tab-pane">
-          <h2 style="margin-bottom: 16px;">All User Activity</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;">All User Activity</h2>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-small" onclick="exportData(event)">Export Data</button>
+              <button class="btn btn-secondary btn-small" onclick="importData()">Import Data</button>
+              <button class="btn btn-danger btn-small" onclick="clearAllData()">Clear All Data</button>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="usersRegionFilter" style="color: #a0a0a0; font-size: 12px;">Region:</label>
+              <select id="usersRegionFilter" onchange="renderUserActivity()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
+                <option value="">All Regions</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="usersGuildFilter" style="color: #a0a0a0; font-size: 12px;">Guild:</label>
+              <select id="usersGuildFilter" onchange="renderUserActivity()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px; max-width: 200px;">
+                <option value="">All Guilds</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="usersUsernameFilter" style="color: #a0a0a0; font-size: 12px;">Username:</label>
+              <input type="text" id="usersUsernameFilter" oninput="renderUserActivity()" placeholder="Filter by username..." style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
+            </div>
+          </div>
           <table id="usersTable">
             <thead>
               <tr>
@@ -502,13 +542,39 @@
         </div>
 
         <div id="graphTab" class="tab-pane">
-          <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
-            <label style="color: #a0a0a0; font-size: 12px;">Group By:</label>
-            <select id="graphGroupBy" onchange="updateGraph()" style="padding: 6px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px;">
-              <option value="region">Region</option>
-              <option value="user">User</option>
-              <option value="chunk">Chunk</option>
-            </select>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="color: #a0a0a0; font-size: 12px;">Group By:</label>
+              <select id="graphGroupBy" onchange="updateGraph()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 120px;">
+                <option value="region">Region</option>
+                <option value="user">User</option>
+                <option value="chunk">Chunk</option>
+              </select>
+            </div>
+            <div style="height: 20px; width: 1px; background-color: #3e3e42;"></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="graphRegionFilter" style="color: #a0a0a0; font-size: 12px;">Region:</label>
+              <select id="graphRegionFilter" onchange="updateGraph()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
+                <option value="">All Regions</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="graphGuildFilter" style="color: #a0a0a0; font-size: 12px;">Guild:</label>
+              <select id="graphGuildFilter" onchange="updateGraph()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px; max-width: 200px;">
+                <option value="">All Guilds</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="graphUsernameFilter" style="color: #a0a0a0; font-size: 12px;">Username:</label>
+              <input type="text" id="graphUsernameFilter" oninput="updateGraph()" placeholder="Filter by username..." style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
+            </div>
+          </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-small" onclick="exportData(event)">Export Data</button>
+              <button class="btn btn-secondary btn-small" onclick="importData()">Import Data</button>
+              <button class="btn btn-danger btn-small" onclick="clearAllData()">Clear All Data</button>
+            </div>
           </div>
           <div style="background-color: #252526; padding: 16px; border-radius: 4px;">
             <canvas id="activityChart" style="max-height: 400px;"></canvas>
