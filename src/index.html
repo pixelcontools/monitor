@@ -525,6 +525,21 @@
               <input type="text" id="usersUsernameFilter" oninput="renderUserActivity()" placeholder="Filter by username..." style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
             </div>
           </div>
+          <div style="margin-bottom: 16px; padding: 12px; background-color: #252526; border-radius: 4px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="usersStartTime" style="color: #a0a0a0; font-size: 12px;">From:</label>
+              <input type="datetime-local" id="usersStartTime" onchange="updateTimeFilter('users', 'startTime', this.value)" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="usersEndTime" style="color: #a0a0a0; font-size: 12px;">To:</label>
+              <input type="datetime-local" id="usersEndTime" onchange="updateTimeFilter('users', 'endTime', this.value)" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px;">
+            </div>
+            <div style="height: 20px; width: 1px; background-color: #3e3e42;"></div>
+            <button class="btn btn-secondary btn-small" onclick="setTimePreset('users', 1)" style="padding: 4px 8px; font-size: 11px;">Last Hour</button>
+            <button class="btn btn-secondary btn-small" onclick="setTimePreset('users', 24)" style="padding: 4px 8px; font-size: 11px;">Last 24h</button>
+            <button class="btn btn-secondary btn-small" onclick="setTimePreset('users', 168)" style="padding: 4px 8px; font-size: 11px;">Last 7 Days</button>
+            <button class="btn btn-secondary btn-small" onclick="clearTimeFilter('users')" style="padding: 4px 8px; font-size: 11px;">Clear Filter</button>
+          </div>
           <table id="usersTable">
             <thead>
               <tr>
@@ -543,7 +558,8 @@
 
         <div id="graphTab" class="tab-pane">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+            <div>
+              <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="color: #a0a0a0; font-size: 12px;">Group By:</label>
               <select id="graphGroupBy" onchange="updateGraph()" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 120px;">
@@ -570,6 +586,22 @@
               <input type="text" id="graphUsernameFilter" oninput="updateGraph()" placeholder="Filter by username..." style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px; min-width: 150px;">
             </div>
           </div>
+              <div style="padding: 12px; background-color: #252526; border-radius: 4px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label for="graphStartTime" style="color: #a0a0a0; font-size: 12px;">From:</label>
+                  <input type="datetime-local" id="graphStartTime" onchange="updateTimeFilter('graph', 'startTime', this.value)" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label for="graphEndTime" style="color: #a0a0a0; font-size: 12px;">To:</label>
+                  <input type="datetime-local" id="graphEndTime" onchange="updateTimeFilter('graph', 'endTime', this.value)" style="padding: 6px 8px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px;">
+                </div>
+                <div style="height: 20px; width: 1px; background-color: #3e3e42;"></div>
+                <button class="btn btn-secondary btn-small" onclick="setTimePreset('graph', 1)" style="padding: 4px 8px; font-size: 11px;">Last Hour</button>
+                <button class="btn btn-secondary btn-small" onclick="setTimePreset('graph', 24)" style="padding: 4px 8px; font-size: 11px;">Last 24h</button>
+                <button class="btn btn-secondary btn-small" onclick="setTimePreset('graph', 168)" style="padding: 4px 8px; font-size: 11px;">Last 7 Days</button>
+                <button class="btn btn-secondary btn-small" onclick="clearTimeFilter('graph')" style="padding: 4px 8px; font-size: 11px;">Clear Filter</button>
+              </div>
+            </div>
             <div style="display: flex; gap: 8px;">
               <button class="btn btn-secondary btn-small" onclick="exportData(event)">Export Data</button>
               <button class="btn btn-secondary btn-small" onclick="importData()">Import Data</button>

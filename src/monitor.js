@@ -29,13 +29,14 @@ let pendingUserRequests = new Map();
 // Filter state
 let filters = {
   leaderboard: { region: '', guild: '', username: '' },
-  users: { region: '', guild: '', username: '' },
-  graph: { region: '', guild: '', username: '' }
+  users: { region: '', guild: '', username: '', startTime: null, endTime: null },
+  graph: { region: '', guild: '', username: '', startTime: null, endTime: null }
 };
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
   loadFromStorage();
+  initializeTimeFilters();
   renderRegions();
   renderLog();
   renderLeaderboard();
@@ -845,7 +846,92 @@ function matchesFilters(entry, filterSet) {
   if (filterSet.guild && guildText !== filterSet.guild.toLowerCase()) return false;
   if (filterSet.username && !username.includes(filterSet.username.toLowerCase())) return false;
   
+  // Time filtering
+  if (filterSet.startTime || filterSet.endTime) {
+    const entryTime = new Date(entry.timestamp || entry.lastSeen).getTime();
+    if (filterSet.startTime && entryTime < filterSet.startTime) return false;
+    if (filterSet.endTime && entryTime > filterSet.endTime) return false;
+  }
+  
   return true;
+}
+
+function initializeTimeFilters() {
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  // Set default time range (1 week ago to now)
+  filters.users.startTime = oneWeekAgo.getTime();
+  filters.users.endTime = now.getTime();
+  filters.graph.startTime = oneWeekAgo.getTime();
+  filters.graph.endTime = now.getTime();
+  
+  // Set datetime inputs if they exist
+  setDateTimeInput('usersStartTime', oneWeekAgo);
+  setDateTimeInput('usersEndTime', now);
+  setDateTimeInput('graphStartTime', oneWeekAgo);
+  setDateTimeInput('graphEndTime', now);
+}
+
+function setDateTimeInput(id, date) {
+  const input = document.getElementById(id);
+  if (input) {
+    input.value = formatDateTimeLocal(date);
+  }
+}
+
+function formatDateTimeLocal(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function setTimePreset(view, hours) {
+  const now = new Date();
+  const startTime = new Date(now.getTime() - hours * 60 * 60 * 1000);
+  
+  filters[view].startTime = startTime.getTime();
+  filters[view].endTime = now.getTime();
+  
+  setDateTimeInput(`${view}StartTime`, startTime);
+  setDateTimeInput(`${view}EndTime`, now);
+  
+  if (view === 'users') {
+    renderUserActivity();
+  } else if (view === 'graph') {
+    updateGraph();
+  }
+}
+
+function clearTimeFilter(view) {
+  filters[view].startTime = null;
+  filters[view].endTime = null;
+  
+  document.getElementById(`${view}StartTime`).value = '';
+  document.getElementById(`${view}EndTime`).value = '';
+  
+  if (view === 'users') {
+    renderUserActivity();
+  } else if (view === 'graph') {
+    updateGraph();
+  }
+}
+
+function updateTimeFilter(view, type, value) {
+  if (value) {
+    filters[view][type] = new Date(value).getTime();
+  } else {
+    filters[view][type] = null;
+  }
+  
+  if (view === 'users') {
+    renderUserActivity();
+  } else if (view === 'graph') {
+    updateGraph();
+  }
 }
 
 async function renderLeaderboard() {
