@@ -742,10 +742,16 @@ async function renderLeaderboard() {
   tbody.innerHTML = sorted.map((entry, index) => {
     const cached = userProfileCache.get(entry.userId);
     const username = cached ? escapeHtml(cached.username) : `User${entry.userId}`;
+    const discordUser = cached?.profile?.discordUser || '';
+    const guildTag = cached?.profile?.guildTag || '';
+    const userClickable = discordUser 
+      ? `<span class="user-link" onclick="copyDiscordId('${escapeHtml(discordUser)}', event)" style="cursor: pointer; text-decoration: underline;" title="Click to copy Discord ID">${username}</span>`
+      : username;
     return `
       <tr>
         <td>${index + 1}</td>
-        <td><a href="https://geopixels.net/?profile=${entry.userId}" target="_blank" class="user-link">${username}</a></td>
+        <td>${userClickable}</td>
+        <td><span style="font-size: 8px; line-height: 1; display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${guildTag}</span></td>
         <td>${entry.pixels}</td>
         <td>${new Date(entry.lastSeen).toLocaleString()}</td>
       </tr>
@@ -791,7 +797,7 @@ async function renderUserActivity() {
     grouped[key].pixels += entry.pixels;
   });
   
-  const consolidated = Object.values(grouped).slice(0, 100);
+  const consolidated = Object.values(grouped); // Show ALL activity
   
   // Fetch all usernames first
   const userIds = consolidated.map(e => e.userId);
@@ -800,10 +806,16 @@ async function renderUserActivity() {
   tbody.innerHTML = consolidated.map(entry => {
     const cached = userProfileCache.get(entry.userId);
     const username = cached ? escapeHtml(cached.username) : `User${entry.userId}`;
+    const discordUser = cached?.profile?.discordUser || '';
+    const guildTag = cached?.profile?.guildTag || '';
+    const userClickable = discordUser 
+      ? `<span class="user-link" onclick="copyDiscordId('${escapeHtml(discordUser)}', event)" style="cursor: pointer; text-decoration: underline;" title="Click to copy Discord ID">${username}</span>`
+      : username;
     return `
       <tr>
         <td>${entry.userId}</td>
-        <td><a href="https://geopixels.net/?profile=${entry.userId}" target="_blank" class="user-link">${username}</a></td>
+        <td>${userClickable}</td>
+        <td><span style="font-size: 8px; line-height: 1; display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${guildTag}</span></td>
         <td>${entry.pixels}</td>
         <td>${escapeHtml(entry.region)}</td>
         <td><a href="https://geopixels.net/?coords=${entry.chunk.replace(',', ',')}" target="_blank" class="coords-link">${entry.chunk}</a></td>
@@ -972,6 +984,15 @@ function updateGraph() {
         }
       }
     }
+  });
+}
+
+function copyDiscordId(discordUser, event) {
+  if (event) event.preventDefault();
+  navigator.clipboard.writeText(discordUser).then(() => {
+    log(`Copied Discord ID: ${discordUser}`);
+  }).catch(err => {
+    log('Failed to copy to clipboard', 'log-error');
   });
 }
 
