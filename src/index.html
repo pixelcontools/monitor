@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoPixels Monitor - Static</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background-color: #252526;
+      border-bottom: 1px solid #3e3e42;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      background-color: #d16969;
+    }
+
+    .status-indicator.monitoring {
+      background-color: #4ec9b0;
+    }
+
+    .status-text {
+      font-size: 14px;
+      color: #a0a0a0;
+    }
+
+    .warning-banner {
+      background-color: #5a3e1a;
+      border-bottom: 1px solid: #8B6914;
+      color: #ffd700;
+      padding: 8px 16px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: #0e639c;
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: #505050;
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #d16969;
+      color: white;
+    }
+
+    .btn-success {
+      background-color: #4ec9b0;
+      color: #1e1e1e;
+    }
+
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 10px;
+      background-color: #0e639c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    .btn-add:hover {
+      background-color: #1177bb;
+    }
+
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 320px;
+      background-color: #252526;
+      border-right: 1px solid #3e3e42;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-section h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #a0a0a0;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #a0a0a0;
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 8px;
+      background-color: #3c3c3c;
+      border: 1px solid #3e3e42;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 12px;
+      font-family: inherit;
+    }
+
+    .region-form {
+      background-color: #2d2d30;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .regions-list {
+      list-style: none;
+    }
+
+    .region-item {
+      background-color: #2d2d30;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .region-item-name {
+      font-weight: 500;
+      color: #4ec9b0;
+      font-size: 13px;
+    }
+
+    .region-item-coords {
+      font-size: 11px;
+      color: #a0a0a0;
+      margin-top: 4px;
+    }
+
+    .region-item-buttons {
+      display: flex;
+      gap: 4px;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tabs {
+      display: flex;
+      background-color: #252526;
+      border-bottom: 1px solid #3e3e42;
+      padding: 0 16px;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      color: #a0a0a0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab:hover {
+      color: #e0e0e0;
+    }
+
+    .tab.active {
+      color: #4ec9b0;
+      border-bottom-color: #4ec9b0;
+    }
+
+    .tab-content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      background-color: #1e1e1e;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    .log-entry {
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      background-color: #252526;
+      border-left: 3px solid #3e3e42;
+    }
+
+    .log-entry.log-info {
+      border-left-color: #4ec9b0;
+    }
+
+    .log-entry.log-warning {
+      border-left-color: #dcdcaa;
+    }
+
+    .log-entry.log-error {
+      border-left-color: #d16969;
+      background-color: #2d1f1f;
+    }
+
+    .log-entry.log-success {
+      border-left-color: #4ec9b0;
+      background-color: #1f2d2d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th {
+      background-color: #252526;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #3e3e42;
+      position: sticky;
+      top: 0;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #3e3e42;
+    }
+
+    tr:hover {
+      background-color: #2d2d30;
+    }
+
+    .user-link {
+      color: #4ec9b0;
+      text-decoration: none;
+    }
+
+    .user-link:hover {
+      text-decoration: underline;
+    }
+
+    .coords-link {
+      color: #569cd6;
+      text-decoration: none;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .coords-link:hover {
+      text-decoration: underline;
+    }
+
+    #regionsList input[type="file"] {
+      display: none;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #3e3e42;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>
+        <span class="status-indicator" id="statusIndicator"></span>
+        GeoPixels Monitor
+      </h1>
+      <span class="status-text" id="statusText">Stopped</span>
+    </div>
+    <div class="control-buttons">
+      <button class="btn btn-success" id="startBtn" onclick="startMonitoring()">▶ Start</button>
+      <button class="btn btn-danger" id="stopBtn" onclick="stopMonitoring()" style="display:none;">⏹ Stop</button>
+    </div>
+  </div>
+
+  <div class="warning-banner">
+    ⚠️ Client-Side Monitor: Monitoring will stop if you close this browser tab. All data is saved locally in your browser.
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h2>Polling Settings</h2>
+        <div class="form-group">
+          <label>Interval (seconds):</label>
+          <select id="pollingInterval">
+            <option value="5">5 seconds</option>
+            <option value="10">10 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="300">5 minutes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Region Manager</h2>
+        <div style="display: flex; gap: 4px; margin-bottom: 12px;">
+          <button class="btn btn-secondary btn-small" onclick="exportRegions()" style="flex: 1;">Export JSON</button>
+          <button class="btn btn-secondary btn-small" onclick="importRegions()" style="flex: 1;">Import JSON</button>
+        </div>
+        
+        <div class="region-form">
+          <div class="form-group">
+            <label>Region Name:</label>
+            <input type="text" id="regionName" placeholder="e.g., MyArtwork">
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 60px 1fr 60px; gap: 8px; margin-top: 16px;">
+            <div style="grid-column: 2; text-align: center;">
+              <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Top (Y)</div>
+              <input type="number" id="regionTopY" placeholder="135000" oninput="updateDimensions()">
+            </div>
+            
+            <div style="grid-column: 1; grid-row: 2; display: flex; flex-direction: column; justify-content: center;">
+              <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Left (X)</div>
+              <input type="number" id="regionLeftX" placeholder="-435000" oninput="updateDimensions()">
+            </div>
+            
+            <div style="grid-column: 2; grid-row: 2; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div>
+                  <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Width</div>
+                  <div style="padding: 6px; background-color: #2c2c2c; border: 1px solid #3e3e42; border-radius: 4px; color: #a0a0a0; font-size: 11px; text-align: center;" id="regionWidthDisplay">-</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Height</div>
+                  <div style="padding: 6px; background-color: #2c2c2c; border: 1px solid #3e3e42; border-radius: 4px; color: #a0a0a0; font-size: 11px; text-align: center;" id="regionHeightDisplay">-</div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="grid-column: 3; grid-row: 2; display: flex; flex-direction: column; justify-content: center;">
+              <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Right (X)</div>
+              <input type="number" id="regionRightX" placeholder="-430000" oninput="updateDimensions()">
+            </div>
+            
+            <div style="grid-column: 2; text-align: center;">
+              <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Bottom (Y)</div>
+              <input type="number" id="regionBottomY" placeholder="140000" oninput="updateDimensions()">
+            </div>
+          </div>
+          
+          <div id="regionValidationError" style="color: #d16969; font-size: 11px; margin-top: 8px; min-height: 16px; display: none;"></div>
+          
+          <button class="btn-add" onclick="addRegion()" id="addRegionBtn">Add Region</button>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <h2 style="margin-bottom: 12px;">Monitored Regions</h2>
+          <ul class="regions-list" id="regionsList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('activity')">Activity Log</button>
+        <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+        <button class="tab" onclick="switchTab('users')">User View</button>
+        <button class="tab" onclick="switchTab('graph')">Graph View</button>
+      </div>
+
+      <div class="tab-content">
+        <div id="activityTab" class="tab-pane active">
+          <div class="toolbar">
+            <button class="btn btn-secondary btn-small" onclick="clearLog()">Clear Log</button>
+            <button class="btn btn-secondary btn-small" onclick="exportLog()">Export Log</button>
+          </div>
+          <div id="activityLog"></div>
+        </div>
+
+        <div id="leaderboardTab" class="tab-pane">
+          <h2 style="margin-bottom: 16px;">Top Contributors</h2>
+          <div style="margin-bottom: 16px;">
+            <label for="leaderboardRegionFilter" style="margin-right: 8px;">Filter by Region:</label>
+            <select id="leaderboardRegionFilter" onchange="renderLeaderboard()" style="padding: 4px 8px;">
+              <option value="">Overall (All Regions)</option>
+            </select>
+          </div>
+          <table id="leaderboardTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>User</th>
+                <th>Pixels</th>
+                <th>Last Seen</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+          </table>
+        </div>
+
+        <div id="usersTab" class="tab-pane">
+          <h2 style="margin-bottom: 16px;">Recent User Activity</h2>
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Pixels</th>
+                <th>Region</th>
+                <th>Chunk</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+
+        <div id="graphTab" class="tab-pane">
+          <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+            <label style="color: #a0a0a0; font-size: 12px;">Group By:</label>
+            <select id="graphGroupBy" onchange="updateGraph()" style="padding: 6px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 4px; color: #e0e0e0; font-size: 12px;">
+              <option value="region">Region</option>
+              <option value="user">User</option>
+              <option value="chunk">Chunk</option>
+            </select>
+          </div>
+          <div style="background-color: #252526; padding: 16px; border-radius: 4px;">
+            <canvas id="activityChart" style="max-height: 400px;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <!-- SCRIPT_PLACEHOLDER -->
+</body>
+</html>
