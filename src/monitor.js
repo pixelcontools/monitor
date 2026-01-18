@@ -756,21 +756,16 @@ async function renderLeaderboard() {
 function addUserActivity(userId, pixelCount, region, chunk) {
   const timestamp = new Date().toISOString();
   
-  // Add individual pixel events for graphing
-  for (let i = 0; i < pixelCount; i++) {
-    userActivity.unshift({
-      userId,
-      pixels: 1,
-      region,
-      chunk,
-      timestamp
-    });
-  }
+  // Add single consolidated entry per user/chunk/interval
+  userActivity.unshift({
+    userId,
+    pixels: pixelCount,
+    region,
+    chunk,
+    timestamp
+  });
   
-  // Keep only last 500 events (increased for better graphs)
-  if (userActivity.length > 500) {
-    userActivity = userActivity.slice(0, 500);
-  }
+  // No limit - cache ALL activity until manually cleared
   
   saveToStorage();
   
