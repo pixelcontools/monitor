@@ -134,7 +134,7 @@
     }
 
     .sidebar {
-      width: 320px;
+      width: 380px;
       background-color: #252526;
       border-right: 1px solid #3e3e42;
       padding: 16px;
@@ -365,10 +365,6 @@
     </div>
   </div>
 
-  <div class="warning-banner">
-    ⚠️ Client-Side Monitor: Monitoring will stop if you close this browser tab. All data is saved locally in your browser.
-  </div>
-
   <div class="container">
     <div class="sidebar">
       <div class="sidebar-section">
@@ -401,12 +397,12 @@
           <div style="display: grid; grid-template-columns: 60px 1fr 60px; gap: 8px; margin-top: 16px;">
             <div style="grid-column: 2; text-align: center;">
               <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Top (Y)</div>
-              <input type="number" id="regionTopY" placeholder="135000" oninput="updateDimensions()">
+              <input type="number" id="regionTopY" placeholder="135000" step="1000" oninput="updateDimensions()">
             </div>
             
             <div style="grid-column: 1; grid-row: 2; display: flex; flex-direction: column; justify-content: center;">
               <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Left (X)</div>
-              <input type="number" id="regionLeftX" placeholder="-435000" oninput="updateDimensions()">
+              <input type="number" id="regionLeftX" placeholder="-435000" step="1000" oninput="updateDimensions()">
             </div>
             
             <div style="grid-column: 2; grid-row: 2; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
@@ -424,12 +420,12 @@
             
             <div style="grid-column: 3; grid-row: 2; display: flex; flex-direction: column; justify-content: center;">
               <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Right (X)</div>
-              <input type="number" id="regionRightX" placeholder="-430000" oninput="updateDimensions()">
+              <input type="number" id="regionRightX" placeholder="-430000" step="1000" oninput="updateDimensions()">
             </div>
             
             <div style="grid-column: 2; text-align: center;">
               <div style="font-size: 11px; color: #a0a0a0; margin-bottom: 4px;">Bottom (Y)</div>
-              <input type="number" id="regionBottomY" placeholder="140000" oninput="updateDimensions()">
+              <input type="number" id="regionBottomY" placeholder="140000" step="1000" oninput="updateDimensions()">
             </div>
           </div>
           
@@ -698,13 +694,17 @@ function clearLog() {
 }
 
 function exportLog() {
-  const blob = new Blob([JSON.stringify(activityLog, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `geopixels-log-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const json = JSON.stringify(activityLog, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.textContent = originalText;
+    }, 2000);
+  }).catch(err => {
+    log('Failed to copy to clipboard', 'log-error');
+  });
 }
 
 // Region management
@@ -838,13 +838,17 @@ function renderRegions() {
 }
 
 function exportRegions() {
-  const blob = new Blob([JSON.stringify(regions, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `geopixels-regions-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const json = JSON.stringify(regions, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.textContent = originalText;
+    }, 2000);
+  }).catch(err => {
+    log('Failed to copy to clipboard', 'log-error');
+  });
 }
 
 function importRegions() {
