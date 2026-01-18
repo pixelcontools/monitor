@@ -768,7 +768,7 @@ async function renderLeaderboard() {
       <tr>
         <td>${index + 1}</td>
         <td>${userClickable}</td>
-        <td><span style="font-size: 8px; line-height: 1; display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${guildTag}</span></td>
+        <td><span style="font-size: 10px; line-height: 1; display: inline-block; transform: scale(0.4); transform-origin: left center;">${guildTag}</span></td>
         <td>${entry.pixels}</td>
         <td>${new Date(entry.lastSeen).toLocaleString()}</td>
       </tr>
@@ -832,7 +832,7 @@ async function renderUserActivity() {
       <tr>
         <td>${entry.userId}</td>
         <td>${userClickable}</td>
-        <td><span style="font-size: 8px; line-height: 1; display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${guildTag}</span></td>
+        <td><span style="font-size: 10px; line-height: 1; display: inline-block; transform: scale(0.4); transform-origin: left center;">${guildTag}</span></td>
         <td>${entry.pixels}</td>
         <td>${escapeHtml(entry.region)}</td>
         <td><a href="https://geopixels.net/?coords=${entry.chunk.replace(',', ',')}" target="_blank" class="coords-link">${entry.chunk}</a></td>
