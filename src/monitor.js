@@ -868,17 +868,15 @@ function initializeTimeFilters() {
   const now = new Date();
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   
-  // Set default time range (1 week ago to now)
+  // Set default time range (1 week ago, no end time for rolling window)
   filters.users.startTime = oneWeekAgo.getTime();
-  filters.users.endTime = now.getTime();
+  filters.users.endTime = null;
   filters.graph.startTime = oneWeekAgo.getTime();
-  filters.graph.endTime = now.getTime();
+  filters.graph.endTime = null;
   
-  // Set datetime inputs if they exist
+  // Set datetime inputs if they exist (leave 'To' fields empty)
   setDateTimeInput('usersStartTime', oneWeekAgo);
-  setDateTimeInput('usersEndTime', now);
   setDateTimeInput('graphStartTime', oneWeekAgo);
-  setDateTimeInput('graphEndTime', now);
 }
 
 function setDateTimeInput(id, date) {
@@ -1171,6 +1169,9 @@ function updateGraph() {
     } else if (groupBy === 'user') {
       const cached = userProfileCache.get(activity.userId);
       groupKey = cached ? cached.username : `User${activity.userId}`;
+    } else if (groupBy === 'guild') {
+      const cached = userProfileCache.get(activity.userId);
+      groupKey = cached?.profile?.guildTag ? extractGuildText(cached.profile.guildTag) : '[No Guild]';
     } else {
       groupKey = activity.chunk;
     }
